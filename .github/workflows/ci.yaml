@@ -1,25 +1,25 @@
-name: CI Pipeline[cite: 7]
+name: CI Pipeline
 
 on:
   push:
     branches:
-      - main[cite: 7]
-  workflow_dispatch:[cite: 7]
+      - main
+  workflow_dispatch:
 
 jobs:
   build-and-run:
-    runs-on: ubuntu-latest[cite: 7]
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code[cite: 7]
-        uses: actions/checkout@v4[cite: 7]
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Setup Python[cite: 7]
-        uses: actions/setup-python@v5[cite: 7]
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.12"[cite: 7]
+          python-version: "3.12"
 
-      - name: Install Dependencies[cite: 7]
+      - name: Install Dependencies
         run: |
           pip install -r requirements.txt
 
@@ -27,7 +27,7 @@ jobs:
       - name: Run SonarQube Container
         run: |
           docker run -d --name sonarqube -p 9000:9000 sonarqube:lts-community
-          
+
       - name: Wait for SonarQube Service
         run: |
           echo "Waiting for SonarQube to initialize..."
@@ -48,25 +48,25 @@ jobs:
             -Dsonar.password="admin"
 
       # --- APPLICATION TESTS ---
-      - name: Build Docker Image[cite: 7]
+      - name: Build Docker Image
         run: |
-          docker build -t table-app .[cite: 7]
+          docker build -t table-app .
 
-      - name: Run Container[cite: 7]
+      - name: Run Container
         run: |
           docker run -d \
             --name table-app-container \
             -p 8000:8000 \
-            table-app[cite: 7]
+            table-app
 
-      - name: Wait for Application[cite: 7]
+      - name: Wait for Application
         run: |
-          sleep 10[cite: 7]
+          sleep 10
 
-      - name: Verify Application[cite: 7]
+      - name: Verify Application
         run: |
-          curl -f http://localhost:8000 || exit 1[cite: 7]
+          curl -f http://localhost:8000 || exit 1
 
-      - name: Show Running Containers[cite: 7]
+      - name: Show Running Containers
         run: |
-          docker ps[cite: 7]
+          docker ps
