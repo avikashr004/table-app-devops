@@ -1,48 +1,72 @@
-name: CI Pipeline
+name: CI Pipeline[cite: 7]
 
 on:
   push:
     branches:
-      - main
-
-  workflow_dispatch:
+      - main[cite: 7]
+  workflow_dispatch:[cite: 7]
 
 jobs:
   build-and-run:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest[cite: 7]
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: Checkout Code[cite: 7]
+        uses: actions/checkout@v4[cite: 7]
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Setup Python[cite: 7]
+        uses: actions/setup-python@v5[cite: 7]
         with:
-          python-version: "3.12"
+          python-version: "3.12"[cite: 7]
 
-      - name: Install Dependencies
+      - name: Install Dependencies[cite: 7]
         run: |
           pip install -r requirements.txt
 
-      - name: Build Docker Image
+      # --- START SONARQUBE SERVER IN CI ---
+      - name: Run SonarQube Container
         run: |
-          docker build -t table-app .
+          docker run -d --name sonarqube -p 9000:9000 sonarqube:lts-community
+          
+      - name: Wait for SonarQube Service
+        run: |
+          echo "Waiting for SonarQube to initialize..."
+          until curl -s http://localhost:9000/api/system/status | grep -q '"status":"UP"'; do
+            sleep 5
+          done
+          echo "SonarQube is UP!"
 
-      - name: Run Container
+      # --- RUN SCANNER AGAINST LOCAL CI CONTAINER ---
+      - name: Run SonarQube Scan
+        run: |
+          docker run --rm \
+            --network="host" \
+            -v "$(pwd):/usr/src" \
+            sonarsource/sonar-scanner-cli \
+            -Dsonar.host.url="http://localhost:9000" \
+            -Dsonar.login="admin" \
+            -Dsonar.password="admin"
+
+      # --- APPLICATION TESTS ---
+      - name: Build Docker Image[cite: 7]
+        run: |
+          docker build -t table-app .[cite: 7]
+
+      - name: Run Container[cite: 7]
         run: |
           docker run -d \
             --name table-app-container \
             -p 8000:8000 \
-            table-app
+            table-app[cite: 7]
 
-      - name: Wait for Application
+      - name: Wait for Application[cite: 7]
         run: |
-          sleep 10
+          sleep 10[cite: 7]
 
-      - name: Verify Application
+      - name: Verify Application[cite: 7]
         run: |
-          curl -f http://localhost:8000 || exit 1
+          curl -f http://localhost:8000 || exit 1[cite: 7]
 
-      - name: Show Running Containers
+      - name: Show Running Containers[cite: 7]
         run: |
-          docker ps
+          docker ps[cite: 7]
